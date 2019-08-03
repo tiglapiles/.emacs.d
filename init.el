@@ -185,3 +185,5 @@
 ;; no-byte-compile: t
 ;; End:
 ;;; init.el ends here
+(put 'scroll-left 'disabled nil)
+(put 'set-goal-column 'disabled nil)
