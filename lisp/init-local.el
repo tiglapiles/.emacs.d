@@ -1,0 +1,274 @@
+;;; package --- summary
+
+;;; Commentary:
+;;
+;; ace jump mode major function
+;;
+;;; Code:
+(add-to-list 'load-path "/full/path/where/ace-jump-mode.el/in/")
+(autoload
+  'ace-jump-mode
+  "ace-jump-mode"
+  "Emacs quick move minor mode"
+  t)
+;; you can select the key you prefer to
+(define-key global-map (kbd "C-c SPC") 'ace-jump-mode)
+
+;;
+;; enable a more powerful jump back function from ace jump mode
+;;
+(autoload
+  'ace-jump-mode-pop-mark
+  "ace-jump-mode"
+  "Ace jump back:-)"
+  t)
+(eval-after-load "ace-jump-mode"
+  '(ace-jump-mode-enable-mark-sync))
+(define-key global-map (kbd "C-x SPC") 'ace-jump-mode-pop-mark)
+
+
+;;; Commentary
+;;; js2-refactor
+(require 'js2-refactor)
+(add-hook 'js2-mode-hook #'js2-refactor-mode)
+
+;;js2-refactor does not work in a buffer that has Javascript parse errors.
+;; (setq js2-skip-preprocessor-directives t)
+
+;; eg. extract function with `C-c C-m ef`.
+(js2r-add-keybindings-with-prefix "C-c C-m")
+
+;;; js-document
+(require 'js-doc)
+
+(setq js-doc-mail-address "tiglapiles@gmail.com"
+      js-doc-author (format "Dipper GUO <%s>" js-doc-mail-address)
+      js-doc-url "https://github.com/tiglapilesf"
+      js-doc-license "MIT")
+
+(add-hook 'js2-mode-hook
+          #'(lambda ()
+              (define-key js2-mode-map "\C-ci" 'js-doc-insert-function-doc)
+              (define-key js2-mode-map "@" 'js-doc-insert-tag)))
+
+
+
+;;; Commentary:
+;; use web-mode for .jsx files
+(add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
+
+;; http://www.flycheck.org/manual/latest/index.html
+(require 'flycheck)
+
+;; turn on flychecking globally
+(add-hook 'after-init-hook #'global-flycheck-mode)
+
+;; disable jshint since we prefer eslint checking
+(setq-default flycheck-disabled-checkers
+              (append flycheck-disabled-checkers
+                      '(javascript-jshint)))
+
+;; use eslint with web-mode for jsx files
+(flycheck-add-mode 'javascript-eslint 'web-mode)
+
+;; customize flycheck temp file prefix
+(setq-default flycheck-temp-prefix ".flycheck")
+
+;; disable json-jsonlist checking for json files
+(setq-default flycheck-disabled-checkers
+              (append flycheck-disabled-checkers
+                      '(json-jsonlist)))
+
+;; https://github.com/purcell/exec-path-from-shell
+;; only need exec-path-from-shell on OSX
+;; this hopefully sets up path and other vars better
+(when (memq window-system '(mac ns))
+  (exec-path-from-shell-initialize))
+
+
+
+;; use local eslint from node_modules before global
+;; http://emacs.stackexchange.com/questions/21205/flycheck-with-file-relative-eslint-executable
+(defun my/use-eslint-from-node-modules ()
+;;; varible
+  (let* ((root (locate-dominating-file
+                (or (buffer-file-name) default-directory)
+                "node_modules"))
+         (eslint (and root
+                      (expand-file-name "node_modules/eslint/bin/eslint.js"
+                                        root))))
+    (when (and eslint (file-executable-p eslint))
+      (setq-local flycheck-javascript-eslint-executable eslint))))
+(add-hook 'flycheck-mode-hook #'my/use-eslint-from-node-modules)
+
+
+
+;; adjust indents for web-mode to 2 spaces
+(defun my-web-mode-hook ()
+  "Hooks for Web mode. Adjust indents"
+;;; http://web-mode.org/
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2))
+(add-hook 'web-mode-hook  'my-web-mode-hook)
+
+
+
+;; for better jsx syntax-highlighting in web-mode
+;; - courtesy of Patrick @halbtuerke
+(defadvice web-mode-highlight-part (around tweak-jsx activate)
+  (if (equal web-mode-content-type "jsx")
+      (let ((web-mode-enable-part-face nil))
+        ad-do-it)
+    ad-do-it))
+
+
+
+;;; Commentary
+;; chinese wubi packages
+(autoload 'chinese-wbim-use-package "chinese-wbim" "Another emacs input method")
+;; Tooltip 暂时还不好用
+(setq chinese-wbim-use-tooltip nil)
+
+(register-input-method
+ "chinese-wbim" "euc-cn" 'chinese-wbim-use-package
+ "五笔" "汉字五笔输入法" "wb.txt")
+
+;; 用 ; 暂时输入英文
+(require 'chinese-wbim-extra)
+(global-set-key ";" 'chinese-wbim-insert-ascii)
+
+
+
+;;; Commentary
+;; dired-sidebar
+(require 'dired-sidebar)
+;; (require 'use-package)
+
+;; (use-package vscode-icon
+;;              :ensure t
+;;              :commands (vscode-icon-for-file))
+
+;; (setq json-image (vscode-icon-for-file "somejsonfile.json"))
+;; (insert-image json-image)
+;; (setq vscode-icon-size 8)
+
+;; (add-to-list 'load-path (expand-file-name "~/path/to/all-the-icons-dired"))
+;; (load "all-the-icons-dired.el")
+(add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
+
+(use-package dired-sidebar
+  :bind (("C-x C-n" . dired-sidebar-toggle-sidebar))
+  :ensure t
+  :commands (dired-sidebar-toggle-sidebar)
+  :init
+  (add-hook 'dired-sidebar-mode-hook
+            (lambda ()
+              (unless (file-remote-p default-directory)
+                (auto-revert-mode))))
+  :config
+  (push 'toggle-window-split dired-sidebar-toggle-hidden-commands)
+  (push 'rotate-windows dired-sidebar-toggle-hidden-commands)
+
+  (setq dired-sidebar-subtree-line-prefix "__")
+  (setq dired-sidebar-theme 'icons)
+  (setq dired-sidebar-use-term-integration t)
+  (setq dired-sidebar-use-custom-font t))
+
+(defun sidebar-toggle ()
+  "Toggle both `dired-sidebar' and `ibuffer-sidebar'."
+  (interactive)
+  (dired-sidebar-toggle-sidebar)
+  (ibuffer-sidebar-toggle-sidebar))
+
+
+;;; Commentary
+;; ace window
+(global-set-key (kbd "M-o") 'ace-window)
+
+;; aw-keys - the list of initial characters used in window labels
+(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+
+;; This is the list of actions you can trigger from ace-window other than the jump default. By default it is:
+(defvar aw-dispatch-alist
+  '((?x aw-delete-window "Delete Window")
+    (?m aw-swap-window "Swap Windows")
+    (?M aw-move-window "Move Window")
+    (?c aw-copy-window "Copy Window")
+    (?j aw-switch-buffer-in-window "Select Buffer")
+    (?n aw-flip-window)
+    (?u aw-switch-buffer-other-window "Switch Buffer Other Window")
+    (?c aw-split-window-fair "Split Fair Window")
+    (?v aw-split-window-vert "Split Vert Window")
+    (?b aw-split-window-horz "Split Horz Window")
+    (?o delete-other-windows "Delete Other Windows")
+    (?? aw-show-dispatch-help))
+  "List of actions for `aw-dispatch-default'.")
+
+
+
+;;; Commentary
+;; add reactJS mode
+(add-to-list 'auto-mode-alist '("components\\/.*\\.js\\'" . rjsx-mode))
+
+
+
+;;; Commentary
+;; scheme
+;; (require 'geiser-install)
+(set-variable (quote scheme-program-name) "guile")
+(setq geiser-repl-use-other-window nil)
+(setq geiser-active-implementations '(guile))
+(setq geiser-mode-start-repl-p t)
+(add-to-list 'auto-mode-alist '("\\.funky-extension\\'" . scheme-mode))
+
+
+
+;;; Commentary
+;; prettier
+(require 'prettier-js)
+(add-hook 'js2-mode-hook 'prettier-js-mode)
+(add-hook 'web-mode-hook 'prettier-js-mode)
+(defun enable-minor-mode (my-pair)
+  "Enable minor mode if filename match the regexp.  MY-PAIR is a cons cell (regexp . minor-mode)."
+  (if (buffer-file-name)
+      (if (string-match (car my-pair) buffer-file-name)
+          (funcall (cdr my-pair)))))
+(add-hook 'web-mode-hook #'(lambda ()
+                             (enable-minor-mode
+                              '("\\.jsx?\\'" . prettier-js-mode))))
+
+
+;;embrace
+(global-set-key (kbd "C-,") #'embrace-commander)
+(add-hook 'org-mode-hook #'embrace-org-mode-hook)
+
+
+;;skewer
+(add-hook 'js2-mode-hook 'skewer-mode)
+(add-hook 'css-mode-hook 'skewer-css-mode)
+(add-hook 'html-mode-hook 'skewer-html-mode)
+
+;;simple http server
+(require 'simple-httpd)
+(setq httpd-root "/Users/guojian/Workspace/yjzw-showmante-page/public")
+;; (httpd-start)
+
+
+
+;;move-dup
+(require 'move-dup)
+(global-move-dup-mode)
+
+
+
+
+;; wechat miniapp file extension
+(add-to-list 'auto-mode-alist '("\\.wxml\\'" . sgml-mode))
+(add-to-list 'auto-mode-alist '("\\.wxss\\'" . css-mode))
+
+
+
+
+(provide 'init-local)
+;;; init-local.el ends
