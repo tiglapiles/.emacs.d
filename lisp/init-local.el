@@ -1,5 +1,7 @@
 ;;; package --- summary
 
+
+
 ;;; Commentary:
 ;;
 ;; ace jump mode major function
@@ -27,6 +29,7 @@
 (define-key global-map (kbd "C-x SPC") 'ace-jump-mode-pop-mark)
 
 
+
 ;;; Commentary
 ;;; js2-refactor
 (require 'js2-refactor)
@@ -38,24 +41,11 @@
 ;; eg. extract function with `C-c C-m ef`.
 (js2r-add-keybindings-with-prefix "C-c C-m")
 
-;;; js-document
-(require 'js-doc)
-
-(setq js-doc-mail-address "tiglapiles@gmail.com"
-      js-doc-author (format "Dipper GUO <%s>" js-doc-mail-address)
-      js-doc-url "https://github.com/tiglapilesf"
-      js-doc-license "MIT")
-
-(add-hook 'js2-mode-hook
-          #'(lambda ()
-              (define-key js2-mode-map "\C-ci" 'js-doc-insert-function-doc)
-              (define-key js2-mode-map "@" 'js-doc-insert-tag)))
-
 
 
 ;;; Commentary:
 ;; use web-mode for .jsx files
-(add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
+;; (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
 
 ;; http://www.flycheck.org/manual/latest/index.html
 (require 'flycheck)
@@ -85,8 +75,6 @@
 (when (memq window-system '(mac ns))
   (exec-path-from-shell-initialize))
 
-
-
 ;; use local eslint from node_modules before global
 ;; http://emacs.stackexchange.com/questions/21205/flycheck-with-file-relative-eslint-executable
 (defun my/use-eslint-from-node-modules ()
@@ -101,26 +89,22 @@
       (setq-local flycheck-javascript-eslint-executable eslint))))
 (add-hook 'flycheck-mode-hook #'my/use-eslint-from-node-modules)
 
-
-
 ;; adjust indents for web-mode to 2 spaces
-(defun my-web-mode-hook ()
-  "Hooks for Web mode. Adjust indents"
+;; (defun my-web-mode-hook ()
+;;   "Hooks for Web mode. Adjust indents"
 ;;; http://web-mode.org/
-  (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-css-indent-offset 2)
-  (setq web-mode-code-indent-offset 2))
-(add-hook 'web-mode-hook  'my-web-mode-hook)
-
-
+;; (setq web-mode-markup-indent-offset 2)
+;; (setq web-mode-css-indent-offset 2)
+;; (setq web-mode-code-indent-offset 2))
+;; (add-hook 'web-mode-hook  'my-web-mode-hook)
 
 ;; for better jsx syntax-highlighting in web-mode
 ;; - courtesy of Patrick @halbtuerke
-(defadvice web-mode-highlight-part (around tweak-jsx activate)
-  (if (equal web-mode-content-type "jsx")
-      (let ((web-mode-enable-part-face nil))
-        ad-do-it)
-    ad-do-it))
+;; (defadvice web-mode-highlight-part (around tweak-jsx activate)
+;;   (if (equal web-mode-content-type "jsx")
+;;       (let ((web-mode-enable-part-face nil))
+;;         ad-do-it)
+;;     ad-do-it))
 
 
 
@@ -182,6 +166,7 @@
   (ibuffer-sidebar-toggle-sidebar))
 
 
+
 ;;; Commentary
 ;; ace window
 (global-set-key (kbd "M-o") 'ace-window)
@@ -204,12 +189,6 @@
     (?o delete-other-windows "Delete Other Windows")
     (?? aw-show-dispatch-help))
   "List of actions for `aw-dispatch-default'.")
-
-
-
-;;; Commentary
-;; add reactJS mode
-(add-to-list 'auto-mode-alist '("components\\/.*\\.js\\'" . rjsx-mode))
 
 
 
@@ -238,36 +217,17 @@
                              (enable-minor-mode
                               '("\\.jsx?\\'" . prettier-js-mode))))
 
-
 ;;embrace
 (global-set-key (kbd "C-,") #'embrace-commander)
 (add-hook 'org-mode-hook #'embrace-org-mode-hook)
-
-
-;;skewer
-;; (add-hook 'js2-mode-hook 'skewer-mode)
-;; (add-hook 'css-mode-hook 'skewer-css-mode)
-;; (add-hook 'html-mode-hook 'skewer-html-mode)
-
-;;simple http server
-(require 'simple-httpd)
-(setq httpd-root "/Users/guojian/Workspace/yjzw-showmante-page/public")
-;; (httpd-start)
-
-
 
 ;;move-dup
 (require 'move-dup)
 (global-move-dup-mode)
 
-
-
-
 ;; wechat miniapp file extension
 (add-to-list 'auto-mode-alist '("\\.wxml\\'" . sgml-mode))
 (add-to-list 'auto-mode-alist '("\\.wxss\\'" . css-mode))
-
-
 
 ;; web-mode
 (require 'web-mode)
@@ -279,9 +239,55 @@
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.http\\'" . restclient-mode))
 (setq web-mode-engines-alist
       '(("php"    . "\\.phtml\\'")
         ("blade"  . "\\.blade\\.")))
+
+
+
+;;; Commentary
+;; Tide mode for jsx, typescript and reactJS
+;; Typescript
+(defun setup-tide-mode ()
+  (interactive)
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  ;; company is an optional dependency. You have to
+  ;; install it separately via package-install
+  ;; `M-x package-install [ret] company`
+  (company-mode +1))
+
+;; aligns annotation to the right hand side
+(setq company-tooltip-align-annotations t)
+(add-hook 'typescript-mode-hook #'setup-tide-mode)
+
+;; JSX
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
+(add-hook 'web-mode-hook
+          (lambda ()
+            (when (string-equal "jsx" (file-name-extension buffer-file-name))
+              (setup-tide-mode))))
+
+;; TSX
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+(add-hook 'web-mode-hook
+          (lambda ()
+            (when (string-equal "tsx" (file-name-extension buffer-file-name))
+              (setup-tide-mode))))
+
+;; enable typescript-tslint checker
+(flycheck-add-mode 'typescript-tslint 'web-mode)
+
+;; configure jsx-tide checker to run after your default jsx checker
+(flycheck-add-mode 'javascript-eslint 'web-mode)
+(flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
+
 
 
 ;;; Commentary
@@ -311,7 +317,6 @@
            "/usr/bin/open"
            (list "-a" "firefox" url))))
 (setq flymd-browser-open-function 'my-flymd-browser-function)
-
 
 
 
@@ -361,6 +366,13 @@
 ;; Add company-lsp backend for metals
 (use-package company-lsp)
 
+
+
+;;; Commentary
+;;simple http server
+(require 'simple-httpd)
+(setq httpd-root "/Users/guojian/Workspace/yjzw-showmante-page/public")
+;; (httpd-start)
 
 
 
