@@ -239,7 +239,6 @@
 (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.http\\'" . restclient-mode))
 (setq web-mode-engines-alist
       '(("php"    . "\\.phtml\\'")
         ("blade"  . "\\.blade\\.")))
@@ -265,6 +264,15 @@
 (setq company-tooltip-align-annotations t)
 (add-hook 'typescript-mode-hook #'setup-tide-mode)
 
+(require 'know-your-http-well)
+;; M-x http-header ;; content-type
+;; M-x http-method ;; post | POST
+;; M-x http-relation ;; describedby
+;; M-x http-status-code ;; 500
+;; M-x http-status-code ;; not_found | NOT_FOUND
+;; add company-restclient to company-backends
+(add-to-list 'auto-mode-alist '("\\.http\\'" . restclient-mode))
+
 ;; JSX
 (require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
@@ -274,7 +282,6 @@
               (setup-tide-mode))))
 
 ;; TSX
-(require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
 (add-hook 'web-mode-hook
           (lambda ()
