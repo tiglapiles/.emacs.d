@@ -208,6 +208,11 @@
 (require 'prettier-js)
 (add-hook 'js2-mode-hook 'prettier-js-mode)
 (add-hook 'web-mode-hook 'prettier-js-mode)
+(add-hook 'typescript-mode-hook 'prettier-js-mode)
+(setq prettier-js-args '(
+                         "--trailing-comma" "all"
+                         "--bracket-spacing" "true"
+                         ))
 (defun enable-minor-mode (my-pair)
   "Enable minor mode if filename match the regexp.  MY-PAIR is a cons cell (regexp . minor-mode)."
   (if (buffer-file-name)
@@ -264,14 +269,12 @@
 (setq company-tooltip-align-annotations t)
 (add-hook 'typescript-mode-hook #'setup-tide-mode)
 
-(require 'know-your-http-well)
-;; M-x http-header ;; content-type
-;; M-x http-method ;; post | POST
-;; M-x http-relation ;; describedby
-;; M-x http-status-code ;; 500
-;; M-x http-status-code ;; not_found | NOT_FOUND
-;; add company-restclient to company-backends
-(add-to-list 'auto-mode-alist '("\\.http\\'" . restclient-mode))
+;; TSX
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+(add-hook 'web-mode-hook
+          (lambda ()
+            (when (string-equal "tsx" (file-name-extension buffer-file-name))
+              (setup-tide-mode))))
 
 ;; JSX
 (require 'web-mode)
@@ -281,13 +284,6 @@
             (when (string-equal "jsx" (file-name-extension buffer-file-name))
               (setup-tide-mode))))
 
-;; TSX
-(add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
-(add-hook 'web-mode-hook
-          (lambda ()
-            (when (string-equal "tsx" (file-name-extension buffer-file-name))
-              (setup-tide-mode))))
-
 ;; enable typescript-tslint checker
 (flycheck-add-mode 'typescript-tslint 'web-mode)
 
@@ -295,21 +291,38 @@
 (flycheck-add-mode 'javascript-eslint 'web-mode)
 (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
 
+(use-package tide
+  :ensure t
+  :after (typescript-mode company flycheck)
+  :hook ((typescript-mode . tide-setup)
+         (typescript-mode . tide-hl-identifier-mode)
+         ;; (before-save . tide-format-before-save)
+         ))
+
+
+(require 'know-your-http-well)
+;; M-x http-header ;; content-type
+;; M-x http-method ;; post | POST
+;; M-x http-relation ;; describedby
+;; M-x http-status-code ;; 500
+;; M-x http-status-code ;; not_found | NOT_FOUND
+;; add company-restclient to company-backends
+(add-to-list 'auto-mode-alist '("\\.http\\'" . restclient-mode))
 
 
 ;;; Commentary
 ;; Doom Themes
-(require 'doom-themes)
-;; Global settings (defaults)
-(setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-      doom-themes-enable-italic t) ; if nil, italics is universally disabled
-;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each
-;; theme may have their own settings.
-(load-theme 'doom-one t)
-;; Enable flashing mode-line on errors
-(doom-themes-visual-bell-config)
-;; Enable custom neotree theme
-(doom-themes-neotree-config)  ; all-the-icons fonts must be installed!
+;; (require 'doom-themes)
+;; ;; Global settings (defaults)
+;; (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+;;       doom-themes-enable-italic t) ; if nil, italics is universally disabled
+;; ;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each
+;; ;; theme may have their own settings.
+;; (load-theme 'doom-one t)
+;; ;; Enable flashing mode-line on errors
+;; (doom-themes-visual-bell-config)
+;; ;; Enable custom neotree theme
+;; (doom-themes-neotree-config)  ; all-the-icons fonts must be installed!
 
 
 ;;; Commentary
