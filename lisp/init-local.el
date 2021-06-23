@@ -209,9 +209,12 @@
 (add-hook 'js2-mode-hook 'prettier-js-mode)
 (add-hook 'web-mode-hook 'prettier-js-mode)
 (add-hook 'typescript-mode-hook 'prettier-js-mode)
+(add-hook 'json-mode 'prettier-js-mode)
+(add-hook 'less-css-mode 'prettier-js-mode)
 (setq prettier-js-args '(
                          "--trailing-comma" "all"
                          "--bracket-spacing" "true"
+                         "--arrow-parens" "avoid"
                          ))
 (defun enable-minor-mode (my-pair)
   "Enable minor mode if filename match the regexp.  MY-PAIR is a cons cell (regexp . minor-mode)."
@@ -289,7 +292,8 @@
 
 ;; configure jsx-tide checker to run after your default jsx checker
 (flycheck-add-mode 'javascript-eslint 'web-mode)
-(flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
+;; error: jsx-tide is not a valid Flycheck syntax checker
+;; (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
 
 (use-package tide
   :ensure t
@@ -388,13 +392,10 @@
 
 
 
-;;; Commentary
-;;simple http server
-(require 'simple-httpd)
-(setq httpd-root "/Users/guojian/Workspace/yjzw-showmante-page/public")
-;; (httpd-start)
-
-
+(setq url-proxy-services
+      '(("no_proxy" . "^\\(localhost\\|10\\..*\\|192\\.168\\..*\\)")
+        ("http" . "127.0.0.1:7890")
+        ("https" . "127.0.0.1:7890")))
 
 
 
